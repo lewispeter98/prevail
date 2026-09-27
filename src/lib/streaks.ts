@@ -8,6 +8,8 @@ export type Streak = {
   /** Consecutive days, including today if it's done. */
   count: number;
   doneToday: boolean;
+  /** The longest run ever (within the lookback window). */
+  best: number;
 };
 
 export type Streaks = Record<StreakKind | "super", Streak>;
@@ -26,7 +28,18 @@ export function streakFrom(days: Set<DayKey>, from: DayKey = today()): Streak {
     count++;
     cursor = addDays(cursor, -1);
   }
-  return { count, doneToday };
+  return { count, doneToday, best: Math.max(count, longestRun(days)) };
+}
+
+function longestRun(days: Set<DayKey>): number {
+  let best = 0;
+  for (const d of days) {
+    if (days.has(addDays(d, -1))) continue; // only count from the start of each run
+    let n = 1;
+    while (days.has(addDays(d, n))) n++;
+    best = Math.max(best, n);
+  }
+  return best;
 }
 
 export async function getStreaks(): Promise<Streaks> {

@@ -40,13 +40,7 @@ export default async function Record() {
   const since30 = addDays(day, -29);
   const last30 = scriptDates.filter((d) => d >= since30).length;
   const scriptStreak = streakFrom(scripted, day);
-  let bestScriptRun = 0;
-  for (const d of [...scriptDates].reverse()) {
-    if (scripted.has(addDays(d, -1))) continue; // only count from the start of each run
-    let n = 0;
-    while (scripted.has(addDays(d, n))) n++;
-    bestScriptRun = Math.max(bestScriptRun, n);
-  }
+  const bestScriptRun = scriptStreak.best;
 
   return (
     <>

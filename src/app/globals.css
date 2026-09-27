@@ -170,8 +170,39 @@ body {
     background-position: -60% 0;
   }
 }
+/* ---------- super streak seal: pressed in like wax, then fades ---------- */
+.seal-backdrop {
+  animation: seal-fade 3.2s ease forwards;
+}
+.seal-press {
+  animation: seal-press 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes seal-press {
+  0% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes seal-fade {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .super-lit::after {
+  .super-lit::after,
+  .seal-press {
     animation: none;
   }
 }

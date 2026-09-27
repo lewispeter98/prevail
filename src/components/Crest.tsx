@@ -48,11 +48,12 @@ export function Crest({ size = 40, value }: { size?: number; value?: number }) {
       {value != null && (
         <text
           x="50"
-          y="66"
+          y="68"
           textAnchor="middle"
           fontFamily="var(--font-cormorant), Georgia, serif"
           fontWeight="600"
-          fontSize="32"
+          fontSize={value >= 100 ? 30 : 40}
+          style={{ fontVariantNumeric: "lining-nums" }}
           fill={`url(#${GRADIENT_ID})`}
         >
           {value}
