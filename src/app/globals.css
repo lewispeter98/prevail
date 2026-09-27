@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/* ---------- Prevail palette: warm neutrals, camel, racing green, brass ---------- */
+:root {
+  --bg: #f5f0e6;
+  --surface: #fbf8f2;
+  --ink: #2b211b;
+  --muted: #8a7d6e;
+  --faint: #b9ad9d;
+  --line: #e4dccd;
+  --camel: #a67c52;
+  --green: #2f4a3a;
+  --green-ink: #2f4a3a;
+  --on-green: #f5f0e6;
+  --green-soft: #e6e7dd;
+  --error: #a5553a;
+  --ghost: rgba(138, 125, 110, 0.36);
+  --pill: #ece5d8;
+  --brass-light: #f1dfb2;
+  --brass: #c9a46a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1714;
+    --surface: #25201b;
+    --ink: #efe7da;
+    --muted: #a39584;
+    --faint: #6e6256;
+    --line: #382f28;
+    --camel: #c9a06f;
+    --green: #2f4b3b;
+    --green-ink: #a3c2ac;
+    --on-green: #f1e9dc;
+    --green-soft: #24302a;
+    --error: #d6937a;
+    --ghost: rgba(163, 149, 132, 0.32);
+    --pill: #2c2621;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-camel: var(--camel);
+  --color-green: var(--green);
+  --color-green-ink: var(--green-ink);
+  --color-on-green: var(--on-green);
+  --color-green-soft: var(--green-soft);
+  --color-error: var(--error);
+  --color-ghost: var(--ghost);
+  --color-pill: var(--pill);
+  --color-brass: var(--brass);
+  --color-brass-light: var(--brass-light);
+  --font-sans: var(--font-manrope), "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), "EB Garamond", Georgia, "Times New Roman", serif;
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  /* faint paper grain */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:focus-visible {
+  outline: 2px solid var(--camel);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- shared building blocks ---------- */
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+  }
+  .label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .num {
+    font-family: var(--font-serif);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    background: var(--green);
+    color: var(--on-green);
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .link {
+    color: var(--green-ink);
+    font-weight: 600;
+    font-size: 13.5px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    cursor: pointer;
+  }
+  .field {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+}
+
+/* ---------- super streak shimmer ---------- */
+.super-lit {
+  position: relative;
+  overflow: hidden;
+}
+.super-lit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(241, 223, 178, 0.28) 48%, transparent 62%);
+  background-size: 260% 100%;
+  animation: sheen 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sheen {
+  0% {
+    background-position: 130% 0;
+  }
+  60%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .super-lit::after {
+    animation: none;
+  }
+}
