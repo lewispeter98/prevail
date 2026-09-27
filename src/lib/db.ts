@@ -16,10 +16,12 @@ export async function db(): Promise<SupabaseClient> {
     throw new Error("Not unlocked");
   }
   if (!client) {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SECRET_KEY;
+    const url = process.env.SUPABASE_URL?.trim();
+    const key = process.env.SUPABASE_SECRET_KEY?.trim();
     if (!url || !key) throw new Error("Missing SUPABASE_URL or SUPABASE_SECRET_KEY");
-    client = createClient(url, key, {
+    // Accept either the full project URL or just the project ref.
+    const fullUrl = /^https?:\/\//.test(url) ? url : `https://${url}.supabase.co`;
+    client = createClient(fullUrl, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
   }

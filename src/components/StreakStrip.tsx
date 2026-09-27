@@ -32,7 +32,7 @@ export async function StreakStrip({ module }: { module: ModuleConfig }) {
               sup.doneToday ? "text-brass" : "text-muted"
             }`}
           >
-            {sup.doneToday ? "Super streak" : "Super · at risk"}
+            {sup.doneToday ? "Super streak" : "At risk"}
           </small>
         </div>
       </div>
