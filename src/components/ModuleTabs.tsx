@@ -12,6 +12,7 @@ export function ModuleTabs({ tabs }: { tabs: { href: string; label: string }[] }
         return (
           <Link
             key={t.href}
+            prefetch
             href={t.href}
             aria-current={active ? "page" : undefined}
             className={`flex-1 rounded-full px-1.5 py-[9px] text-center text-[13.5px] ${

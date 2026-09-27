@@ -23,6 +23,7 @@ export function BottomNav() {
           return (
             <Link
               key={href}
+              prefetch
               href={href}
               aria-current={active ? "page" : undefined}
               className={`relative flex flex-col items-center gap-[3px] pt-2.5 pb-3 text-[11px] font-semibold uppercase tracking-[0.1em] ${

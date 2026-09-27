@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/BottomNav";
+import { Prefetcher } from "@/components/Prefetcher";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -7,6 +8,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         {children}
       </div>
       <BottomNav />
+      <Prefetcher />
     </>
   );
 }
