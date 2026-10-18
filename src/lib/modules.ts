@@ -1,11 +1,14 @@
 import type { StreakKind } from "./streaks";
 
-export type ModuleKey = "weight" | "goals" | "journal";
+export type ModuleKey = "weight" | "goals" | "journal" | "time";
+
+/** The core daily streaks plus Time, which sits outside the super streak. */
+export type OwnStreakKind = StreakKind | "time";
 
 export type ModuleConfig = {
   key: ModuleKey;
   label: string;
-  streak: StreakKind;
+  streak: OwnStreakKind;
   streakLabel: string;
   tabs: { href: string; label: string }[];
 };
@@ -42,6 +45,17 @@ export const MODULES: Record<ModuleKey, ModuleConfig> = {
       { href: "/journal", label: "Today" },
       { href: "/journal/reflections", label: "Reflections" },
       { href: "/journal/history", label: "History" },
+    ],
+  },
+  time: {
+    key: "time",
+    label: "Time",
+    streak: "time",
+    streakLabel: "Time streak",
+    tabs: [
+      { href: "/time", label: "Now" },
+      { href: "/time/breakdown", label: "Breakdown" },
+      { href: "/time/insights", label: "Insights" },
     ],
   },
 };

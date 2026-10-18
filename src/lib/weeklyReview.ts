@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL, writeWeeklyReview } from "./ai";
 import { addDays, formatDay, longDay, today, type DayKey } from "./day";
 import { getLifeGoals, getReflection, listEntries, saveReflection, type WeeklyReview } from "./journal";
+import { getCategories, getDailyTotals } from "./time";
+import { fmtHours, NONE } from "./timeCore";
 import { weekStart } from "./weightStats";
 
 /** The week the Reflections tab should offer: this week on a Sunday, otherwise last week. */
@@ -58,6 +60,8 @@ export async function buildWeekContext(client: SupabaseClient, monday: DayKey): 
   } else out.push("No weigh-ins this week.");
   out.push("");
 
+  out.push(...(await timeSection(client, monday, sunday)));
+
   out.push("JOURNAL");
   if (entries.length) {
     for (const e of [...entries].reverse()) {
@@ -72,6 +76,30 @@ export async function buildWeekContext(client: SupabaseClient, monday: DayKey): 
     out.push(lastReview.content.focus);
   }
   return out.join("\n");
+}
+
+/** Hours per time-tracking category for the week. Optional: left out if nothing was logged. */
+async function timeSection(client: SupabaseClient, monday: DayKey, sunday: DayKey): Promise<string[]> {
+  try {
+    const [totals, categories] = await Promise.all([getDailyTotals(client, monday, sunday), getCategories(client)]);
+    const days = Object.keys(totals);
+    if (days.length === 0) return [];
+    const by = new Map<string, number>();
+    for (const t of Object.values(totals)) for (const [c, m] of Object.entries(t)) by.set(c, (by.get(c) ?? 0) + m);
+    const name = (id: string) => (id === NONE ? "Uncategorised" : (categories.find((c) => c.id === id)?.name ?? "Other"));
+    const lines = [...by.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([id, m]) => `- ${name(id)}: ${fmtHours(m)} (${fmtHours(m / days.length)} a day)`);
+    const perDay = Object.entries(totals)
+      .sort()
+      .map(([d, t]) => {
+        const parts = Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 4);
+        return `- ${longDay(d)}: ${parts.map(([id, m]) => `${name(id)} ${fmtHours(m)}`).join(", ")}`;
+      });
+    return ["TIME TRACKED (hours:minutes)", `Logged on ${days.length} of 7 days.`, ...lines, "By day:", ...perDay, ""];
+  } catch {
+    return [];
+  }
 }
 
 export async function createWeeklyReview(client: SupabaseClient, monday: DayKey): Promise<WeeklyReview> {

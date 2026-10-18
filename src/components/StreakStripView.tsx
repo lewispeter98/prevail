@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { OwnStreakKind } from "@/lib/modules";
 import type { StreakKind } from "@/lib/streaks";
 import { Crest } from "./Crest";
-import { CheckIcon, JournalIcon, ScriptIcon, WeightIcon } from "./icons";
+import { CheckIcon, JournalIcon, ScriptIcon, TimeIcon, WeightIcon } from "./icons";
 
 type S = { count: number; doneToday: boolean; best: number };
 
 type Props = {
   super: S;
-  own: S & { kind: StreakKind; label: string };
+  own: S & { kind: OwnStreakKind; label: string };
   today: Record<StreakKind, boolean>;
 };
 
-const ICONS = { weight: WeightIcon, script: ScriptIcon, journal: JournalIcon };
+const ICONS = { weight: WeightIcon, script: ScriptIcon, journal: JournalIcon, time: TimeIcon };
 const TASKS: { kind: StreakKind; label: string; href: string }[] = [
   { kind: "weight", label: "Log your weight", href: "/weight" },
   { kind: "script", label: "Write out your goals", href: "/goals" },

@@ -42,6 +42,13 @@ export const JournalIcon = (p: P) => (
   </svg>
 );
 
+export const TimeIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </svg>
+);
+
 export const SettingsIcon = (p: P) => (
   <svg {...base} {...p}>
     <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />

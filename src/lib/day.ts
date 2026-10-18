@@ -53,6 +53,41 @@ export const longDay = (key: DayKey) =>
 export const shortDay = (key: DayKey) =>
   formatDay(key, { weekday: "short", day: "numeric", month: "short" });
 
+const clockFormat = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** London calendar date and HH:MM for an instant (no 4am shift). */
+export function londonClock(instant: Date): { date: DayKey; hm: string } {
+  const p = Object.fromEntries(clockFormat.formatToParts(instant).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, hm: `${p.hour}:${p.minute}` };
+}
+
+/** The instant a London wall-clock time happens, e.g. ("2026-10-18", "07:30"). */
+export function londonInstant(date: DayKey, hm: string): Date {
+  const [y, m, d] = date.split("-").map(Number);
+  const [h, mi] = hm.split(":").map(Number);
+  const wall = Date.UTC(y, m - 1, d, h, mi);
+  const offsetAt = (t: number) => {
+    const c = londonClock(new Date(t));
+    const [cy, cm, cd] = c.date.split("-").map(Number);
+    const [ch, cmi] = c.hm.split(":").map(Number);
+    return Date.UTC(cy, cm - 1, cd, ch, cmi) - t;
+  };
+  let t = wall - offsetAt(wall);
+  t = wall - offsetAt(t);
+  return new Date(t);
+}
+
+/** When a logical day starts (4am London). */
+export const dayStartInstant = (day: DayKey) => londonInstant(day, "04:00");
+
 /** Good morning / afternoon / evening, by London clock time. */
 export function greeting(now: Date = new Date()): string {
   const hour = Number(
@@ -62,3 +97,9 @@ export function greeting(now: Date = new Date()): string {
   if (hour >= 12 && hour < 18) return "Good afternoon.";
   return "Good evening.";
 }
+
+/**
+ * The current time, for server components. They render once per request, so
+ * reading the clock there is safe (the lint rule assumes client re-renders).
+ */
+export const requestTime = () => Date.now();

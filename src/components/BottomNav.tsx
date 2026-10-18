@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GoalsIcon, JournalIcon, WeightIcon } from "./icons";
+import { GoalsIcon, JournalIcon, TimeIcon, WeightIcon } from "./icons";
 
 const ITEMS = [
   { href: "/weight", label: "Weight", Icon: WeightIcon },
   { href: "/goals", label: "Goals", Icon: GoalsIcon },
   { href: "/journal", label: "Journal", Icon: JournalIcon },
+  { href: "/time", label: "Time", Icon: TimeIcon },
 ];
 
 export function BottomNav() {
@@ -17,7 +18,7 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/90 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      <div className="mx-auto grid max-w-[440px] grid-cols-3">
+      <div className="mx-auto grid max-w-[440px] grid-cols-4">
         {ITEMS.map(({ href, label, Icon }) => {
           const active = pathname.startsWith(href);
           return (
