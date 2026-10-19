@@ -76,18 +76,23 @@ export async function getQuickLabels(client: SupabaseClient): Promise<string[]> 
   if (error) throw error;
   const saved = (data.time_quick as string[]) ?? [];
   if (saved.length) return saved;
-  // Until you choose your own, use your most frequent activities from the last month.
+  // The buttons must never move around, so until there's enough history they're
+  // a fixed default set. Once there is, your most frequent activities are saved
+  // once and only change when you edit them in settings.
+  const defaults = ["work", "break", "family time", "dog walk", "dinner", "gym", "sleep", "bed"];
   const since = dayStartInstant(addDays(today(), -30)).toISOString();
   const { data: recent, error: e2 } = await client.from("time_entries").select("label").gte("started_at", since).limit(3000);
   if (e2) throw e2;
+  if (recent.length < 40) return defaults;
   const counts = new Map<string, number>();
   for (const r of recent) {
     const k = (r.label as string).trim().toLowerCase();
     counts.set(k, (counts.get(k) ?? 0) + 1);
   }
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
-  const defaults = ["work", "break", "family time", "dog walk", "dinner", "gym", "sleep", "bed"];
-  return [...new Set([...top, ...defaults])].slice(0, 8);
+  const chosen = [...new Set([...top, ...defaults])].slice(0, 8);
+  await client.from("settings").update({ time_quick: chosen }).eq("id", 1);
+  return chosen;
 }
 
 /** A day counts towards the Time streak when at least 12 of its 24 hours are logged. */
