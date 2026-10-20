@@ -1,3 +1,4 @@
+import { FreshOnShow } from "@/components/FreshOnShow";
 import { db } from "@/lib/db";
 import { addDays, formatDay, londonClock, requestTime, toDate } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
@@ -98,6 +99,7 @@ export default async function TimeInsights() {
 
   return (
     <>
+      <FreshOnShow renderedAt={now} />
       <section className="card">
         <div className="flex items-center justify-between gap-3">
           <span className="label">This week so far</span>

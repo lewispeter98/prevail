@@ -1,3 +1,4 @@
+import { FreshOnShow } from "@/components/FreshOnShow";
 import { db } from "@/lib/db";
 import { addDays, requestTime } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
@@ -23,7 +24,9 @@ export default async function Breakdown() {
     getRules(client),
   ]);
   return (
-    <BreakdownView
+    <>
+      <FreshOnShow renderedAt={requestTime()} />
+      <BreakdownView
       today={end}
       serverNow={requestTime()}
       totalsFrom={from}
@@ -32,6 +35,7 @@ export default async function Breakdown() {
       entries={entries}
       categories={categories}
       rules={rules}
-    />
+      />
+    </>
   );
 }

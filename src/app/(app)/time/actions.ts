@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh as refreshScreen } from "next/cache";
 import { db } from "@/lib/db";
 import { londonClock, londonInstant, type DayKey } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
@@ -11,7 +11,10 @@ type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const HM_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const COLOUR_RE = /^#[0-9A-Fa-f]{6}$/;
-const refresh = () => revalidatePath("/", "layout");
+// Re-render just the screen you are on. revalidatePath would empty the whole
+// client cache, making every prefetched screen in the app download again after
+// each activity switch. Other Time tabs refresh themselves when opened.
+const refresh = () => refreshScreen();
 const cleanLabel = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, 200);
 
 /* ---------- entries ---------- */
@@ -20,7 +23,7 @@ const cleanLabel = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, 200);
  * Starts a new activity, now or at an earlier time today. A time later than
  * now is taken to mean yesterday (e.g. logging "23:30 bed" just after midnight).
  */
-export async function logActivity(label: string, hm: string | null): Promise<Result<{ id: string; categorised: boolean }>> {
+export async function logActivity(label: string, hm: string | null): Promise<Result<{ id: string }>> {
   const text = cleanLabel(label);
   if (!text) return { ok: false, error: "Type what you're doing." };
   if (hm != null && !HM_RE.test(hm)) return { ok: false, error: "That time isn't valid." };
@@ -37,9 +40,8 @@ export async function logActivity(label: string, hm: string | null): Promise<Res
     .select("id")
     .single();
   if (error) return { ok: false, error: error.message };
-  const rules = await getRules(client);
   refresh();
-  return { ok: true, id: data.id, categorised: categorise(text, null, rules) != null };
+  return { ok: true, id: data.id };
 }
 
 /** Changes an entry's time (keeping its calendar date) and wording. */

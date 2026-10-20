@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useOptimistic, useState, useTransition } from "react";
-import { londonClock, type DayKey } from "@/lib/day";
+import { londonClock, londonInstant, type DayKey } from "@/lib/day";
 import { categorise, endOf, fmtDuration, timeDayOf, type TimeCategory, type TimeEntry, type TimeRule } from "@/lib/timeCore";
 import { logActivity } from "./actions";
 import { CategoryPicker } from "./CategoryPicker";
@@ -59,14 +59,20 @@ export function NowView({ day, serverNow, entries, categories, rules, quick }: P
     const clean = label.trim();
     if (!clean) return;
     setError(null);
-    const at = time ? null : new Date();
+    // Show the switch straight away, including when logging late with a start time.
+    let at = new Date();
+    if (time) {
+      const t = londonInstant(londonClock(at).date, time);
+      at = t > at ? new Date(t.getTime() - 86_400_000) : t;
+    }
     startTransition(async () => {
-      if (at) addOptimistic({ id: `pending-${at.getTime()}`, startedAt: at.toISOString(), label: clean, override: null });
+      addOptimistic({ id: `pending-${at.getTime()}`, startedAt: at.toISOString(), label: clean, override: null });
       const res = await logActivity(clean, time);
       if (!res.ok) return setError(res.error);
       setText("");
       setTime(null);
-      if (!res.categorised) {
+      // The screen already has the rules, so no extra round trip to check the category.
+      if (!categorise(clean, null, rules)) {
         setPicker({ id: res.id, label: clean, when: `Started ${time ?? londonClock(new Date()).hm}`, current: null });
       }
     });

@@ -1,3 +1,4 @@
+import { FreshOnShow } from "@/components/FreshOnShow";
 import { db } from "@/lib/db";
 import { requestTime } from "@/lib/day";
 import { getCategories, getEntriesForDays, getQuickLabels, getRules } from "@/lib/time";
@@ -14,13 +15,16 @@ export default async function TimeNow() {
     getQuickLabels(client),
   ]);
   return (
-    <NowView
+    <>
+      <FreshOnShow renderedAt={requestTime()} />
+      <NowView
       day={day}
       serverNow={requestTime()}
       entries={entries}
       categories={categories}
       rules={rules}
       quick={quick}
-    />
+      />
+    </>
   );
 }

@@ -1,3 +1,5 @@
+import { FreshOnShow } from "@/components/FreshOnShow";
+import { requestTime } from "@/lib/day";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCategories, getQuickLabels, getRules } from "@/lib/time";
@@ -17,6 +19,7 @@ export default async function TimeSettings() {
   ]);
   return (
     <>
+      <FreshOnShow renderedAt={requestTime()} />
       <section className="card scroll-mt-4" id="sort">
         <h2 className="font-serif text-[26px] leading-tight font-semibold">Sort activities</h2>
         <p className="mt-1 text-[13px] text-muted">
