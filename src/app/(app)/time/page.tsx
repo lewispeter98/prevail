@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
-import { requestTime, today } from "@/lib/day";
+import { requestTime } from "@/lib/day";
 import { getCategories, getEntriesForDays, getQuickLabels, getRules } from "@/lib/time";
+import { timeToday } from "@/lib/timeCore";
 import { NowView } from "./NowView";
 
 export default async function TimeNow() {
   const client = await db();
-  const day = today();
+  const day = timeToday();
   const [entries, categories, rules, quick] = await Promise.all([
     getEntriesForDays(client, day, day),
     getCategories(client),

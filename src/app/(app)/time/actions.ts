@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { londonClock, londonInstant, today, type DayKey } from "@/lib/day";
+import { londonClock, londonInstant, type DayKey } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
-import { categorise, normaliseKeyword, SWATCHES, type DailyTotals, type TimeEntry } from "@/lib/timeCore";
+import { categorise, normaliseKeyword, SWATCHES, timeToday, type DailyTotals, type TimeEntry } from "@/lib/timeCore";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -229,7 +229,7 @@ export async function importTime(
   rules: { keyword: string; categoryId: string }[],
 ): Promise<Result<{ imported: number; skipped: number }>> {
   const rows = days.flatMap((d) =>
-    DATE_RE.test(d.date) && d.date <= today()
+    DATE_RE.test(d.date) && d.date <= timeToday()
       ? d.items
           .filter((it) => HM_RE.test(it.hm) && cleanLabel(it.label))
           .map((it) => ({ started_at: londonInstant(d.date, it.hm).toISOString(), label: cleanLabel(it.label), source: "import" }))

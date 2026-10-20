@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { greeting, longDay, today } from "@/lib/day";
 import { MODULES, type ModuleKey } from "@/lib/modules";
+import { timeToday } from "@/lib/timeCore";
 import { ModuleTabs } from "./ModuleTabs";
 import { StreakStrip } from "./StreakStrip";
 import { SettingsIcon } from "./icons";
@@ -24,7 +25,8 @@ export function ModuleHeader({ module: key }: { module: ModuleKey }) {
         </Link>
       </div>
       <div className="mt-[18px]">
-        <div className="label">{longDay(today())}</div>
+        {/* Time tracking uses calendar days; everything else uses the 4am day. */}
+        <div className="label">{longDay(key === "time" ? timeToday() : today())}</div>
         <h1 className="mt-1 font-serif text-[40px] leading-[1.05] font-medium text-balance">{title}</h1>
       </div>
       <Suspense fallback={<div className="mt-4 h-[58px]" />}>

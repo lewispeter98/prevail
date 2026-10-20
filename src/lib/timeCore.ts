@@ -1,3 +1,5 @@
+import { londonClock, londonInstant, type DayKey } from "./day";
+
 /**
  * Time tracking rules shared by the server and the browser.
  * An entry is the moment you switched activity. It runs until the next entry,
@@ -46,3 +48,11 @@ export function fmtHours(minutes: number): string {
 /** Per-day minutes by category id ("none" for uncategorised). */
 export type DailyTotals = Record<string, Record<string, number>>;
 export const NONE = "none";
+
+/*
+ * Unlike the rest of Prevail (4am to 4am), time tracking uses ordinary calendar
+ * days: midnight to midnight, London time.
+ */
+export const timeDayOf = (instant: Date): DayKey => londonClock(instant).date;
+export const timeToday = (): DayKey => timeDayOf(new Date());
+export const timeDayStart = (day: DayKey): Date => londonInstant(day, "00:00");

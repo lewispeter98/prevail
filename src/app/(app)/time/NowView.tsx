@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useOptimistic, useState, useTransition } from "react";
-import { dayOf, londonClock, type DayKey } from "@/lib/day";
-import { categorise, endOf, fmtDuration, type TimeCategory, type TimeEntry, type TimeRule } from "@/lib/timeCore";
+import { londonClock, type DayKey } from "@/lib/day";
+import { categorise, endOf, fmtDuration, timeDayOf, type TimeCategory, type TimeEntry, type TimeRule } from "@/lib/timeCore";
 import { logActivity } from "./actions";
 import { CategoryPicker } from "./CategoryPicker";
 import { CategoryChip, EntryRow } from "./EntryRow";
@@ -53,7 +53,7 @@ export function NowView({ day, serverNow, entries, categories, rules, quick }: P
   const curCat = cur ? catOf(cur) : null;
   const onBreak = curCat?.name.toLowerCase().startsWith("break");
   const backTo = onBreak ? [...optimistic.slice(0, ci)].reverse().find((e) => !catOf(e)?.name.toLowerCase().startsWith("break")) : null;
-  const todays = optimistic.map((e, i) => ({ e, i })).filter(({ e }) => dayOf(new Date(e.startedAt)) === day).reverse();
+  const todays = optimistic.map((e, i) => ({ e, i })).filter(({ e }) => timeDayOf(new Date(e.startedAt)) === day).reverse();
 
   function log(label: string) {
     const clean = label.trim();

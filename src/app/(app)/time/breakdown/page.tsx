@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { addDays, requestTime, today } from "@/lib/day";
+import { addDays, requestTime } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
+import { timeToday } from "@/lib/timeCore";
 import { BreakdownView } from "./BreakdownView";
 
 export const metadata = { title: "Breakdown" };
@@ -10,7 +11,7 @@ const RECENT_DAYS = 7;
 
 export default async function Breakdown() {
   const client = await db();
-  const end = today();
+  const end = timeToday();
   // Totals for this year (and at least the last three months) load up front.
   const back = addDays(end, -92);
   const from = `${end.slice(0, 4)}-01-01` < back ? `${end.slice(0, 4)}-01-01` : back;

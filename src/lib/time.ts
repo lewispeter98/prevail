@@ -1,8 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { addDays, dayStartInstant, today, type DayKey } from "./day";
+import { addDays, type DayKey } from "./day";
 import { streakFrom, type Streak } from "./streaks";
-import { CAP_MS, NONE, type DailyTotals, type TimeCategory, type TimeEntry, type TimeRule } from "./timeCore";
+import { CAP_MS, NONE, timeDayStart, timeToday, type DailyTotals, type TimeCategory, type TimeEntry, type TimeRule } from "./timeCore";
 
 export async function getCategories(client: SupabaseClient): Promise<TimeCategory[]> {
   const { data, error } = await client
@@ -38,8 +38,8 @@ const COLS = "id, started_at, label, category_override";
  * `from` began and the first entry after `to` (so every duration is known).
  */
 export async function getEntriesForDays(client: SupabaseClient, from: DayKey, to: DayKey): Promise<TimeEntry[]> {
-  const t0 = dayStartInstant(from).toISOString();
-  const t1 = dayStartInstant(addDays(to, 1)).toISOString();
+  const t0 = timeDayStart(from).toISOString();
+  const t1 = timeDayStart(addDays(to, 1)).toISOString();
   const [before, inside, after] = await Promise.all([
     client
       .from("time_entries")
@@ -80,7 +80,7 @@ export async function getQuickLabels(client: SupabaseClient): Promise<string[]> 
   // a fixed default set. Once there is, your most frequent activities are saved
   // once and only change when you edit them in settings.
   const defaults = ["work", "break", "family time", "dog walk", "dinner", "gym", "sleep", "bed"];
-  const since = dayStartInstant(addDays(today(), -30)).toISOString();
+  const since = timeDayStart(addDays(timeToday(), -30)).toISOString();
   const { data: recent, error: e2 } = await client.from("time_entries").select("label").gte("started_at", since).limit(3000);
   if (e2) throw e2;
   if (recent.length < 40) return defaults;
@@ -99,7 +99,7 @@ export async function getQuickLabels(client: SupabaseClient): Promise<string[]> 
 export const STREAK_MINUTES = 12 * 60;
 
 export async function getTimeStreak(client: SupabaseClient): Promise<Streak> {
-  const end = today();
+  const end = timeToday();
   const totals = await getDailyTotals(client, addDays(end, -180), end);
   const done = new Set(
     Object.entries(totals)

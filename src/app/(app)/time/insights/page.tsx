@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { addDays, dayOf, formatDay, londonClock, requestTime, toDate, today } from "@/lib/day";
+import { addDays, formatDay, londonClock, requestTime, toDate } from "@/lib/day";
 import { getCategories, getDailyTotals, getEntriesForDays, getRules } from "@/lib/time";
-import { categorise, endOf, fmtHours, NONE } from "@/lib/timeCore";
+import { categorise, endOf, fmtHours, NONE, timeDayOf, timeToday } from "@/lib/timeCore";
 
 export const metadata = { title: "Time insights" };
 
@@ -25,7 +25,7 @@ const clock = (mins: number) => {
 
 export default async function TimeInsights() {
   const client = await db();
-  const end = today();
+  const end = timeToday();
   const monday = addDays(end, -((toDate(end).getUTCDay() + 6) % 7));
   const elapsed = Math.round((toDate(end).getTime() - toDate(monday).getTime()) / 86_400_000);
   const lastMonday = addDays(monday, -7);
@@ -64,7 +64,7 @@ export default async function TimeInsights() {
   // Patterns from the last 14 days of entries.
   const now = requestTime();
   const segs = entries.map((e, i) => ({
-    day: dayOf(new Date(e.startedAt)),
+    day: timeDayOf(new Date(e.startedAt)),
     start: Date.parse(e.startedAt),
     end: endOf(entries, i, now),
     cat: categorise(e.label, e.override, rules),
@@ -72,7 +72,7 @@ export default async function TimeInsights() {
   const mins = (t: number) => {
     const { hm } = londonClock(new Date(t));
     const [h, m] = hm.split(":").map(Number);
-    return (h < 4 ? h + 24 : h) * 60 + m; // after midnight counts as late, not early
+    return h * 60 + m;
   };
   const workDays = new Map<string, { first: number; last: number }>();
   let longest: { len: number; start: number; end: number } | null = null;
@@ -138,7 +138,7 @@ export default async function TimeInsights() {
           [
             "Longest focus block",
             longest
-              ? `${fmtHours(longest.len / 60_000)} · ${formatDay(dayOf(new Date(longest.start)), { weekday: "short" })} ${londonClock(new Date(longest.start)).hm}–${londonClock(new Date(longest.end)).hm}`
+              ? `${fmtHours(longest.len / 60_000)} · ${formatDay(timeDayOf(new Date(longest.start)), { weekday: "short" })} ${londonClock(new Date(longest.start)).hm}–${londonClock(new Date(longest.end)).hm}`
               : "—",
           ],
           ["Breaks per working day", wd.length ? (breaks / wd.length).toFixed(1) : "—"],

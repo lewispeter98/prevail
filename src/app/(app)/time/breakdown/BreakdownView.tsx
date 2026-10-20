@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { addDays, dayOf, dayStartInstant, formatDay, londonClock, toDate, type DayKey } from "@/lib/day";
+import { addDays, formatDay, londonClock, toDate, type DayKey } from "@/lib/day";
 import {
   categorise,
   endOf,
   fmtHours,
   NONE,
+  timeDayOf,
+  timeDayStart,
   type DailyTotals,
   type TimeCategory,
   type TimeEntry,
@@ -122,7 +124,7 @@ export function BreakdownView(props: Props) {
   let span = 0;
   for (const d of shown) {
     const t = totals[d];
-    span += d === today ? Math.max(0, now - dayStartInstant(d).getTime()) / 60_000 : 1440;
+    span += d === today ? Math.max(0, now - timeDayStart(d).getTime()) / 60_000 : 1440;
     if (!t) continue;
     logged++;
     for (const [c, m] of Object.entries(t)) sum[c] = (sum[c] ?? 0) + m;
@@ -175,14 +177,14 @@ export function BreakdownView(props: Props) {
     if (period === "day") {
       const list = recent ? props.entries : dayCache[anchor];
       if (!list) return <div className="mt-3.5 h-[34px] animate-pulse rounded-[10px] bg-pill" />;
-      const s = dayStartInstant(anchor).getTime();
+      const s = timeDayStart(anchor).getTime();
       const e = Math.min(s + DAY_MS, now);
       return (
         <>
           <div
             className="relative mt-3.5 h-[34px] overflow-hidden rounded-[10px] border border-line"
             role="img"
-            aria-label="4am to 4am, coloured by category"
+            aria-label="Midnight to midnight, coloured by category"
             style={{ background: "repeating-linear-gradient(135deg,var(--pill) 0 6px,transparent 6px 12px)" }}
           >
             {list.map((en, i) => {
@@ -205,7 +207,7 @@ export function BreakdownView(props: Props) {
             })}
           </div>
           <div className="mt-1 flex justify-between text-[10.5px] text-muted tabular-nums">
-            {["4am", "8", "12", "4pm", "8", "12", "4am"].map((x, i) => (
+            {["12am", "4", "8", "12pm", "4", "8", "12am"].map((x, i) => (
               <span key={i}>{x}</span>
             ))}
           </div>
@@ -275,7 +277,7 @@ export function BreakdownView(props: Props) {
   }
 
   const dayList = period === "day" ? (recent ? props.entries : dayCache[anchor]) : undefined;
-  const dayRows = dayList?.map((e, i) => ({ e, i })).filter(({ e }) => dayOf(new Date(e.startedAt)) === anchor) ?? [];
+  const dayRows = dayList?.map((e, i) => ({ e, i })).filter(({ e }) => timeDayOf(new Date(e.startedAt)) === anchor) ?? [];
 
   return (
     <>
