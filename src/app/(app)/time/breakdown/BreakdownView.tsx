@@ -18,6 +18,7 @@ import {
 import { loadDayEntries, loadTotals } from "../actions";
 import { CategoryPicker } from "../CategoryPicker";
 import { EntryRow } from "../EntryRow";
+import { AddEntry } from "./AddEntry";
 
 type Period = "day" | "week" | "month" | "year";
 const DAY_MS = 86_400_000;
@@ -65,6 +66,16 @@ export function BreakdownView(props: Props) {
   const [loading, setLoading] = useState(false);
   const [picker, setPicker] = useState<{ id: string; label: string; when: string; current: string | null } | null>(null);
   const [now] = useState(serverNow);
+  // Entries added on this screen show at once; they're dropped as soon as fresh
+  // data arrives from the server.
+  const [added, setAdded] = useState<TimeEntry[]>([]);
+  const [seenEntries, setSeenEntries] = useState(props.entries);
+  if (seenEntries !== props.entries) {
+    setSeenEntries(props.entries);
+    setAdded([]);
+  }
+  const withAdded = (list?: TimeEntry[]) =>
+    list && [...list, ...added.filter((a) => !list.some((e) => e.id === a.id))].sort((a, b) => a.startedAt.localeCompare(b.startedAt));
 
   const totals: DailyTotals = { ...olderTotals, ...props.totals };
   const byId = new Map(categories.map((c) => [c.id, c]));
@@ -104,6 +115,7 @@ export function BreakdownView(props: Props) {
   }, [period, anchor, recent, dayCache]);
 
   const resetOlder = () => {
+    setAdded([]);
     setOlderTotals({});
     setOlderFrom(props.totalsFrom);
     setDayCache({});
@@ -175,7 +187,7 @@ export function BreakdownView(props: Props) {
 
   function chart() {
     if (period === "day") {
-      const list = recent ? props.entries : dayCache[anchor];
+      const list = withAdded(recent ? props.entries : dayCache[anchor]);
       if (!list) return <div className="mt-3.5 h-[34px] animate-pulse rounded-[10px] bg-pill" />;
       const s = timeDayStart(anchor).getTime();
       const e = Math.min(s + DAY_MS, now);
@@ -276,7 +288,17 @@ export function BreakdownView(props: Props) {
     );
   }
 
-  const dayList = period === "day" ? (recent ? props.entries : dayCache[anchor]) : undefined;
+  const dayList = period === "day" ? withAdded(recent ? props.entries : dayCache[anchor]) : undefined;
+
+  // Activities you've logged recently, most frequent first, as suggestions when adding.
+  const suggestions = (() => {
+    const counts = new Map<string, number>();
+    for (const e of props.entries) {
+      const k = e.label.trim().toLowerCase();
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k]) => k);
+  })();
   const dayRows = dayList?.map((e, i) => ({ e, i })).filter(({ e }) => timeDayOf(new Date(e.startedAt)) === anchor) ?? [];
 
   return (
@@ -390,6 +412,32 @@ export function BreakdownView(props: Props) {
                 onSaved={resetOlder}
               />
             ))}
+          {dayList && (
+            <AddEntry
+              key={anchor}
+              day={anchor}
+              defaultTime={
+                anchor === today
+                  ? londonClock(new Date(now)).hm
+                  : dayRows.length
+                    ? londonClock(new Date(dayRows[dayRows.length - 1].e.startedAt)).hm
+                    : "09:00"
+              }
+              suggestions={suggestions}
+              onAdded={(entry) => {
+                resetOlder();
+                setAdded((a) => [...a, entry]);
+                if (!categorise(entry.label, null, rules)) {
+                  setPicker({
+                    id: entry.id,
+                    label: entry.label,
+                    when: `${formatDay(anchor, { weekday: "short", day: "numeric", month: "short" })} · ${londonClock(new Date(entry.startedAt)).hm}`,
+                    current: null,
+                  });
+                }
+              }}
+            />
+          )}
         </section>
       )}
 

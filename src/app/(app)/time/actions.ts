@@ -44,6 +44,24 @@ export async function logActivity(label: string, hm: string | null): Promise<Res
   return { ok: true, entry: { id: data.id, startedAt: at.toISOString(), label: text, override: null } };
 }
 
+/** Adds an entry at a time on any past day (or earlier today), e.g. one you forgot to log. */
+export async function addEntryOnDay(day: DayKey, hm: string, label: string): Promise<Result<{ entry: TimeEntry }>> {
+  const text = cleanLabel(label);
+  if (!text) return { ok: false, error: "Type what you were doing." };
+  if (!DATE_RE.test(day) || !HM_RE.test(hm)) return { ok: false, error: "Check the time." };
+  const at = londonInstant(day, hm);
+  if (at > new Date()) return { ok: false, error: "That time hasn't happened yet." };
+  const client = await db();
+  const { data, error } = await client
+    .from("time_entries")
+    .insert({ started_at: at.toISOString(), label: text })
+    .select("id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+  refresh();
+  return { ok: true, entry: { id: data.id, startedAt: at.toISOString(), label: text, override: null } };
+}
+
 /** Changes an entry's time (keeping its calendar date) and wording. */
 export async function updateEntry(id: string, hm: string, label: string): Promise<Result> {
   const text = cleanLabel(label);
