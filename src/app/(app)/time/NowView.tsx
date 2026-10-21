@@ -17,24 +17,27 @@ type Props = {
   quick: string[];
 };
 
-/** Ticks every `ms` so durations stay current. Starts from the server's clock to avoid a hydration mismatch. */
-function useNow(serverNow: number, ms: number) {
+/**
+ * Ticks every `ms` so durations stay current. Starts from the server's clock to
+ * avoid a hydration mismatch. Also returns a way to sync the clock immediately.
+ */
+function useNow(serverNow: number, ms: number): [number, (t: number) => void] {
   const [now, setNow] = useState(serverNow);
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), ms);
     return () => clearInterval(t);
   }, [ms]);
-  return now;
+  return [now, setNow];
 }
 
 function Timer({ since, serverNow }: { since: number; serverNow: number }) {
-  const now = useNow(serverNow, 1000);
+  const [now] = useNow(serverNow, 1000);
   return <>{fmtDuration(now - since)}</>;
 }
 
 export function NowView({ day, serverNow, entries, categories, rules, quick }: Props) {
   const router = useRouter();
-  const now = useNow(serverNow, 15_000);
+  const [now, setNow] = useNow(serverNow, 15_000);
   // Entries saved on this screen, shown straight away without waiting for the
   // server to re-render. Dropped as soon as fresh data arrives from the server.
   const [added, setAdded] = useState<TimeEntry[]>([]);
@@ -62,7 +65,9 @@ export function NowView({ day, serverNow, entries, categories, rules, quick }: P
 
   let ci = -1;
   optimistic.forEach((e, i) => {
-    if (Date.parse(e.startedAt) <= now) ci = i;
+    // The latest entry is "right now". Allow a little slack so the server's
+    // timestamp, or a phone clock a few seconds behind, never hides it.
+    if (Date.parse(e.startedAt) <= now + 120_000) ci = i;
   });
   const cur = ci >= 0 ? optimistic[ci] : null;
   const curCat = cur ? catOf(cur) : null;
@@ -76,6 +81,9 @@ export function NowView({ day, serverNow, entries, categories, rules, quick }: P
     setError(null);
     // Show the switch straight away, including when logging late with a start time.
     let at = new Date();
+    // Sync the clock first, so the new entry counts as "right now" (and its
+    // quick button lights up) immediately rather than at the next tick.
+    setNow(at.getTime());
     if (time) {
       const t = londonInstant(londonClock(at).date, time);
       at = t > at ? new Date(t.getTime() - 86_400_000) : t;
