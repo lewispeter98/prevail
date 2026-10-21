@@ -23,7 +23,7 @@ const cleanLabel = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, 200);
  * Starts a new activity, now or at an earlier time today. A time later than
  * now is taken to mean yesterday (e.g. logging "23:30 bed" just after midnight).
  */
-export async function logActivity(label: string, hm: string | null): Promise<Result<{ id: string }>> {
+export async function logActivity(label: string, hm: string | null): Promise<Result<{ entry: TimeEntry }>> {
   const text = cleanLabel(label);
   if (!text) return { ok: false, error: "Type what you're doing." };
   if (hm != null && !HM_RE.test(hm)) return { ok: false, error: "That time isn't valid." };
@@ -41,7 +41,7 @@ export async function logActivity(label: string, hm: string | null): Promise<Res
     .single();
   if (error) return { ok: false, error: error.message };
   refresh();
-  return { ok: true, id: data.id };
+  return { ok: true, entry: { id: data.id, startedAt: at.toISOString(), label: text, override: null } };
 }
 
 /** Changes an entry's time (keeping its calendar date) and wording. */

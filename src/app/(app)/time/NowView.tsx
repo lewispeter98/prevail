@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { londonClock, londonInstant, type DayKey } from "@/lib/day";
 import { categorise, endOf, fmtDuration, timeDayOf, type TimeCategory, type TimeEntry, type TimeRule } from "@/lib/timeCore";
@@ -32,10 +33,24 @@ function Timer({ since, serverNow }: { since: number; serverNow: number }) {
 }
 
 export function NowView({ day, serverNow, entries, categories, rules, quick }: Props) {
+  const router = useRouter();
   const now = useNow(serverNow, 15_000);
-  const [optimistic, addOptimistic] = useOptimistic(entries, (state, e: TimeEntry) =>
+  // Entries saved on this screen, shown straight away without waiting for the
+  // server to re-render. Dropped as soon as fresh data arrives from the server.
+  const [added, setAdded] = useState<TimeEntry[]>([]);
+  const [seen, setSeen] = useState(entries);
+  if (seen !== entries) {
+    setSeen(entries);
+    setAdded([]);
+  }
+  const merged = [...entries, ...added.filter((a) => !entries.some((e) => e.id === a.id))].sort((a, b) =>
+    a.startedAt.localeCompare(b.startedAt),
+  );
+  const [optimistic, addOptimistic] = useOptimistic(merged, (state, e: TimeEntry) =>
     [...state, e].sort((a, b) => a.startedAt.localeCompare(b.startedAt)),
   );
+  /** Fetch this screen's data again after any change. */
+  const reload = () => router.refresh();
   const [text, setText] = useState("");
   const [time, setTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +84,13 @@ export function NowView({ day, serverNow, entries, categories, rules, quick }: P
       addOptimistic({ id: `pending-${at.getTime()}`, startedAt: at.toISOString(), label: clean, override: null });
       const res = await logActivity(clean, time);
       if (!res.ok) return setError(res.error);
+      setAdded((a) => [...a, res.entry]);
       setText("");
       setTime(null);
+      reload();
       // The screen already has the rules, so no extra round trip to check the category.
       if (!categorise(clean, null, rules)) {
-        setPicker({ id: res.id, label: clean, when: `Started ${time ?? londonClock(new Date()).hm}`, current: null });
+        setPicker({ id: res.entry.id, label: clean, when: `Started ${time ?? londonClock(new Date()).hm}`, current: null });
       }
     });
   }

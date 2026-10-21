@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { SWATCHES, type TimeCategory, type TimeRule } from "@/lib/timeCore";
 import {
@@ -79,6 +80,7 @@ function Status({ msg }: { msg: { ok: boolean; text: string } | null }) {
 
 /** Uncategorised activities, each with a category picker. Saving creates "always" rules. */
 export function SortList({ items, categories }: { items: { label: string; count: number }[]; categories: TimeCategory[] }) {
+  const router = useRouter();
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -108,6 +110,7 @@ export function SortList({ items, categories }: { items: { label: string; count:
           startTransition(async () => {
             const res = await saveRules(chosen.map(([keyword, categoryId]) => ({ keyword, categoryId })));
             if (res.ok) {
+              router.refresh();
               setChoice({});
               setMsg({ ok: true, text: `Sorted ${res.saved} ${res.saved === 1 ? "activity" : "activities"}.` });
             } else setMsg({ ok: false, text: res.error });
@@ -122,6 +125,7 @@ export function SortList({ items, categories }: { items: { label: string; count:
 }
 
 export function CategoriesEditor({ categories }: { categories: TimeCategory[] }) {
+  const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [colourFor, setColourFor] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
@@ -130,6 +134,7 @@ export function CategoriesEditor({ categories }: { categories: TimeCategory[] })
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     startTransition(async () => {
       const res = await fn();
+      if (res.ok) router.refresh();
       setMsg(res.ok ? null : { ok: false, text: res.error ?? "Couldn't save that." });
     });
 
@@ -206,6 +211,7 @@ export function CategoriesEditor({ categories }: { categories: TimeCategory[] })
 }
 
 export function RulesEditor({ rules, categories }: { rules: TimeRule[]; categories: TimeCategory[] }) {
+  const router = useRouter();
   const [kw, setKw] = useState("");
   const [cat, setCat] = useState(categories[0]?.id ?? "");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -214,6 +220,7 @@ export function RulesEditor({ rules, categories }: { rules: TimeRule[]; categori
     startTransition(async () => {
       const res = await fn();
       if (res.ok) {
+        router.refresh();
         setMsg(null);
         after?.();
       } else setMsg({ ok: false, text: res.error ?? "Couldn't save that." });
@@ -278,6 +285,7 @@ export function RulesEditor({ rules, categories }: { rules: TimeRule[]; categori
 }
 
 export function QuickEditor({ quick }: { quick: string[] }) {
+  const router = useRouter();
   const [list, setList] = useState(quick);
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -286,6 +294,7 @@ export function QuickEditor({ quick }: { quick: string[] }) {
     setList(next);
     startTransition(async () => {
       const res = await saveQuickLabels(next);
+      if (res.ok) router.refresh();
       setMsg(res.ok ? null : { ok: false, text: res.error });
     });
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { formatDay, today as todayKey } from "@/lib/day";
 import { categorise, type TimeCategory, type TimeRule } from "@/lib/timeCore";
@@ -17,6 +18,7 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 export function TimeImport({ categories, rules }: { categories: TimeCategory[]; rules: TimeRule[] }) {
+  const router = useRouter();
   const [text, setText] = useState("");
   const [first, setFirst] = useState(todayKey());
   const [sortTo, setSortTo] = useState<Record<string, string>>({});
@@ -142,6 +144,7 @@ export function TimeImport({ categories, rules }: { categories: TimeCategory[]; 
                     .map(([keyword, categoryId]) => ({ keyword, categoryId })),
                 );
                 if (res.ok) {
+                  router.refresh();
                   setResult({
                     ok: true,
                     text: `Imported ${res.imported} entries${res.skipped ? `, skipped ${res.skipped} already in Prevail` : ""}.`,

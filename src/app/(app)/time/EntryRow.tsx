@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { londonClock } from "@/lib/day";
 import { fmtDuration, type TimeCategory, type TimeEntry } from "@/lib/timeCore";
@@ -50,6 +51,7 @@ export function EntryRow({
   /** Called after an edit or delete is saved. */
   onSaved?: () => void;
 }) {
+  const router = useRouter();
   const hm = londonClock(new Date(entry.startedAt)).hm;
   const [editing, setEditing] = useState(false);
   const [time, setTime] = useState(hm);
@@ -62,6 +64,7 @@ export function EntryRow({
       const res = await fn();
       if (res.ok) {
         setEditing(false);
+        router.refresh();
         onSaved?.();
       }
       else setError(res.error ?? "Couldn't save that.");

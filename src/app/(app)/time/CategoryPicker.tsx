@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Sheet } from "@/components/Sheet";
 import { SWATCHES, type TimeCategory } from "@/lib/timeCore";
@@ -13,6 +14,7 @@ export function NewCategoryForm({
   categories: TimeCategory[];
   onCreated: (id: string, name: string) => void;
 }) {
+  const router = useRouter();
   const used = new Set(categories.map((c) => c.colour));
   const [name, setName] = useState("");
   const [colour, setColour] = useState(SWATCHES.find((c) => !used.has(c)) ?? SWATCHES[0]);
@@ -22,7 +24,10 @@ export function NewCategoryForm({
   const create = () =>
     startTransition(async () => {
       const res = await createCategory(name, colour);
-      if (res.ok) onCreated(res.id, name.trim());
+      if (res.ok) {
+        router.refresh();
+        onCreated(res.id, name.trim());
+      }
       else setError(res.error);
     });
 
@@ -77,6 +82,7 @@ export function CategoryPicker({
   categories: TimeCategory[];
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [picked, setPicked] = useState<string | null>(current);
   const [extra, setExtra] = useState<TimeCategory[]>([]);
   const [showNew, setShowNew] = useState(false);
@@ -91,7 +97,10 @@ export function CategoryPicker({
     startTransition(async () => {
       if (!picked) return;
       const res = await setEntryCategory(entry.id, picked, scope, keyword);
-      if (res.ok) onClose();
+      if (res.ok) {
+        router.refresh();
+        onClose();
+      }
       else setError(res.error);
     });
 
