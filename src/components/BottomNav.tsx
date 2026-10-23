@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { GoalsIcon, JournalIcon, TimeIcon, WeightIcon } from "./icons";
 
 const ITEMS = [
+  { href: "/time", label: "Time", Icon: TimeIcon },
   { href: "/weight", label: "Weight", Icon: WeightIcon },
   { href: "/goals", label: "Goals", Icon: GoalsIcon },
   { href: "/journal", label: "Journal", Icon: JournalIcon },
-  { href: "/time", label: "Time", Icon: TimeIcon },
 ];
 
 export function BottomNav() {

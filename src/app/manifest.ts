@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Prevail",
     short_name: "Prevail",
     description: "Weight, goals and journal.",
-    start_url: "/weight",
+    start_url: "/time",
     display: "standalone",
     orientation: "portrait",
     background_color: "#F5F0E6",
