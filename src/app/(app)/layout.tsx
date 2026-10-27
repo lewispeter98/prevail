@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/BottomNav";
+import { LaunchToTime } from "@/components/LaunchToTime";
 import { Prefetcher } from "@/components/Prefetcher";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
@@ -9,6 +10,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       </div>
       <BottomNav />
       <Prefetcher />
+      <LaunchToTime />
     </>
   );
 }
